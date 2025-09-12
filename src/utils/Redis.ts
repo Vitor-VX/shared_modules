@@ -1,4 +1,4 @@
-import { createClient } from "redis";
+import { type RedisClientType, createClient } from '@redis/client';
 
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 const redisClient = createClient({ url: REDIS_URL });
@@ -23,7 +23,7 @@ async function connectRedis() {
 redisClient.on('error', err => console.error('[Redis Client Error]', err));
 redisSubscriberClient.on('error', err => console.error('[Redis Subscriber Error]', err));
 
-const redis = redisClient;
-const redisSubscriber = redisSubscriberClient;
+const redis: RedisClientType<any, any> = redisClient;
+const redisSubscriber: RedisClientType<any, any> = redisSubscriberClient;
 
 export { redis, redisSubscriber, connectRedis }
