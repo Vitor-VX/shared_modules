@@ -1,0 +1,24 @@
+{
+    "name": "@botsync/shared",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc && npm link"
+    },
+    "exports": {
+        ".": "./dist/index.js",
+        "./models": "./dist/models/index.js",
+        "./database": "./dist/database.js",
+        "./managers": "./dist/models/manager/index.js",
+        "./utils": "./dist/utils/index.js"
+    },
+    "devDependencies": {
+        "@types/node": "^24.3.1",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "mongoose": "^8.0.0",
+        "redis": "^5.8.2"
+    }
+}
