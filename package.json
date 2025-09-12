@@ -4,7 +4,9 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc && npm link"
+        "build": "tsc",
+        "prepare": "npm run build",
+        "test": "tsc && npm link"
     },
     "exports": {
         ".": "./dist/index.js",
