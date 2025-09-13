@@ -48,8 +48,6 @@ class BotManager {
     async getBot(filter: FilterQuery<IBot>): Promise<IBot | null> {
         try {
             const bot = await BotModel.findOne(filter).exec();
-            console.log(bot?.id);
-
             if (!bot) return null;
 
             return bot;

@@ -10,7 +10,7 @@ export interface IClientInfo {
 
 export interface IClientState extends MongooseDocument {
     clientId: string;
-    botPhone: string;
+    botId: string;
     client: IClientInfo;
     lastInteraction: Date;
 };
@@ -29,7 +29,7 @@ const ClientStateSchema = new Schema<IClientState>(
             type: String,
             required: true
         },
-        botPhone: {
+        botId: {
             type: String,
             required: true,
         },

@@ -2,11 +2,11 @@ import { ClientStateModel, IClientState } from "../ClientStateModel";
 import { AppError } from '../../utils';
 
 class ClientStateManager {
-    async findOne(clientId: string, botPhone: string, clientPhone: string): Promise<IClientState | null> {
+    async findOne(clientId: string, botId: string, clientPhone: string): Promise<IClientState | null> {
         try {
             return await ClientStateModel.findOne({
                 clientId,
-                botPhone,
+                botId,
                 "client.phone": clientPhone,
             }).lean().exec();
         } catch (error) {
@@ -14,9 +14,9 @@ class ClientStateManager {
         }
     }
 
-    async findAll(clientId: string, botPhone: string): Promise<IClientState[]> {
+    async findAll(clientId: string, botId: string): Promise<IClientState[]> {
         try {
-            return await ClientStateModel.find({ clientId, botPhone }).lean().exec();
+            return await ClientStateModel.find({ clientId, botId }).lean().exec();
         } catch (error) {
             throw new AppError(`Erro ao buscar todos os clientes no DB.`, 500, error);
         }
@@ -27,7 +27,7 @@ class ClientStateManager {
             const { _id, ...updateData } = state;
 
             return await ClientStateModel.findOneAndUpdate(
-                { clientId: state.clientId, botPhone: state.botPhone, "client.phone": state.client.phone },
+                { clientId: state.clientId, botId: state.botId, "client.phone": state.client.phone },
                 { $set: updateData },
                 { upsert: true, new: true }
             ).exec();
@@ -36,11 +36,11 @@ class ClientStateManager {
         }
     }
 
-    async deleteState(clientId: string, botPhone: string, clientPhone: string): Promise<{ deletedCount: number }> {
+    async deleteState(clientId: string, botId: string, clientPhone: string): Promise<{ deletedCount: number }> {
         try {
             const result = await ClientStateModel.deleteOne({
                 clientId,
-                botPhone,
+                botId,
                 "client.phone": clientPhone
             }).exec();
 
@@ -50,19 +50,30 @@ class ClientStateManager {
         }
     }
 
+    async deleteAllStatesByBot(clientId: string, botId: string): Promise<void> {
+        try {
+            await ClientStateModel.deleteMany({
+                clientId,
+                botId
+            }).exec();
+        } catch (error) {
+            throw new AppError("Erro ao deletar todos os estados do bot no DB.", 500, error);
+        }
+    }
+
     async createOrUpdate(
         clientId: string,
-        botPhone: string,
+        botId: string,
         clientPhone: string,
         clientName: string
     ): Promise<IClientState | null> {
         try {
-            const filter = { clientId, botPhone, "client.phone": clientPhone };
+            const filter = { clientId, botId, "client.phone": clientPhone };
 
             const update = {
                 $setOnInsert: {
                     clientId,
-                    botPhone,
+                    botId,
                     "client.phone": clientPhone,
                     "client.currentNode": "1",
                     "client.completedFunnel": false,

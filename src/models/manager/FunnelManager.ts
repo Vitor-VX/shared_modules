@@ -4,7 +4,7 @@ import { UpdateQuery } from "mongoose";
 
 export interface IFunnelCreate {
     clientId: string;
-    phone: string;
+    botId: string;
     isActive?: boolean;
     nodes: IFunnelNode[];
 }
@@ -17,7 +17,7 @@ export interface IFunnelState {
 class FunnelManager {
     async createOrUpdateFunnel(data: IFunnelCreate): Promise<IFunnel> {
         try {
-            const filter = { clientId: data.clientId, phone: data.phone };
+            const filter = { clientId: data.clientId, botId: data.botId };
             const existingFunnel = await FunnelModel.findOne(filter).lean();
 
             let update = { ...data };
@@ -39,9 +39,9 @@ class FunnelManager {
         }
     }
 
-    async toggleFunnelStatus(clientId: string, phone: string, isActive: boolean): Promise<IFunnel | null> {
+    async toggleFunnelStatus(clientId: string, botId: string, isActive: boolean): Promise<IFunnel> {
         try {
-            const funnel = await this.updateFunnel(clientId, phone, { $set: { isActive } });
+            const funnel = await this.updateFunnel(clientId, botId, { $set: { isActive } });
             if (!funnel) {
                 throw new AppError("Funil não encontrado para alterar o status", 404);
             }
@@ -55,9 +55,9 @@ class FunnelManager {
         }
     }
 
-    async getFunnelByClientIdAndPhone(clientId: string, phone: string): Promise<IFunnel | null> {
+    async getFunnelByClientIdAndPhone(clientId: string, botId: string): Promise<IFunnel | null> {
         try {
-            const funnel = await FunnelModel.findOne({ clientId, phone }).exec();
+            const funnel = await FunnelModel.findOne({ clientId, botId }).exec();
             if (!funnel) return null;
 
             return funnel;
@@ -66,10 +66,10 @@ class FunnelManager {
         }
     }
 
-    async getFunnelStatus(clientId: string, phone: string): Promise<IFunnelState | null> {
+    async getFunnelStatus(clientId: string, botId: string): Promise<IFunnelState | null> {
         try {
             const funnel = await FunnelModel.findOne(
-                { clientId, phone },
+                { clientId, botId },
                 { isActive: 1 }
             ).exec();
 
@@ -86,19 +86,19 @@ class FunnelManager {
         }
     }
 
-    async listFunnelsByBot(clientId: string, phone: string): Promise<IFunnel[]> {
+    async listFunnelsByBot(clientId: string, botId: string): Promise<IFunnel[]> {
         try {
-            return await FunnelModel.find({ clientId, phone }).sort({ createdAt: -1 }).exec();
+            return await FunnelModel.find({ clientId, botId }).sort({ createdAt: -1 }).exec();
         } catch (error: any) {
             throw new AppError("Erro ao listar funis do bot", 500, error);
         }
     }
 
-    async findActiveFunnelsForBot(clientId: string, phone: string): Promise<IFunnel[]> {
+    async findActiveFunnelsForBot(clientId: string, botId: string): Promise<IFunnel[]> {
         try {
             return await FunnelModel.find({
                 clientId,
-                phone,
+                botId,
                 isActive: true
             }).exec();
         } catch (error: any) {
@@ -108,12 +108,12 @@ class FunnelManager {
 
     async updateFunnel(
         clientId: string,
-        phone: string,
+        botId: string,
         update: UpdateQuery<IFunnel>
     ): Promise<IFunnel | null> {
         try {
             const funnel = await FunnelModel.findOneAndUpdate(
-                { clientId, phone },
+                { clientId, botId },
                 update,
                 { new: true }
             ).exec();
@@ -128,10 +128,10 @@ class FunnelManager {
 
     async deleteFunnel(
         clientId: string,
-        phone: string
+        botId: string
     ): Promise<{ deletedCount: number }> {
         try {
-            const result = await FunnelModel.deleteOne({ clientId, phone }).exec();
+            const result = await FunnelModel.deleteOne({ clientId, botId }).exec();
             if (result.deletedCount === 0) {
                 throw new AppError("Funil não encontrado para exclusão", 404);
             }

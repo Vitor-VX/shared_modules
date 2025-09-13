@@ -121,10 +121,10 @@ class AIManager {
     /**
      * Atualiza parcialmente a configuração de IA de um bot.
      */
-    async updateAIConfig(clientId: string, phone: string, update: UpdateQuery<IAIModel>): Promise<IAIModel | null> {
+    async updateAIConfig(clientId: string, botId: string, update: UpdateQuery<IAIModel>): Promise<IAIModel | null> {
         try {
             const aiConfig = await AIModel.findOneAndUpdate(
-                { clientId, phone },
+                { clientId, botId },
                 update,
                 { new: true }
             ).exec();
@@ -141,9 +141,9 @@ class AIManager {
     /**
      * Deleta a configuração de IA de um bot.
      */
-    async deleteAIConfig(clientId: string, phone: string): Promise<{ deletedCount: number }> {
+    async deleteAIConfig(clientId: string, botId: string): Promise<{ deletedCount: number }> {
         try {
-            const result = await AIModel.deleteOne({ clientId, phone }).exec();
+            const result = await AIModel.deleteOne({ clientId, botId }).exec();
             if (result.deletedCount === 0) {
                 throw new AppError("Configuração de IA não encontrada para exclusão", 404);
             }

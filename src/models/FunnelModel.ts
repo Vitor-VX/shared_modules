@@ -18,7 +18,7 @@ export interface IFunnelNode {
 
 export interface IFunnel extends Document {
     clientId: string;
-    phone: string;
+    botId: string;
     isActive: boolean;
     nodes: IFunnelNode[]; 
     lastModified: Date;
@@ -51,7 +51,7 @@ const FunnelSchema = new Schema<IFunnel>(
             type: String,
             required: true
         },
-        phone: {
+        botId: {
             type: String,
             required: true,
         },
