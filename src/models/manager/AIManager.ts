@@ -22,8 +22,28 @@ class AIManager {
      * Cria ou atualiza a configuração de IA para um bot específico.
      * Usa upsert para simplificar a lógica: se não existir, cria; se existir, atualiza.
      */
-    async saveAIConfiguration(data: IAICreate): Promise<IAICreate> {
+   async saveAIConfiguration(data: IAICreate): Promise<IAIModel> {
         try {
+            if (data.callings && Array.isArray(data.callings)) {
+                const processedCallings = data.callings.map(calling => {
+                    const newCalling: Calling = {
+                        key: calling.key,
+                        enabled: calling.enabled,
+                    };
+
+                    if (calling.key === "payment_made") {
+                        newCalling.paymentConfig = calling.paymentConfig;
+                        delete (newCalling as any).actions; 
+                    } else {
+                        newCalling.actions = calling.actions;
+                        delete (newCalling as any).paymentConfig;
+                    }
+
+                    return newCalling;
+                });
+                data.callings = processedCallings;
+            }
+
             const filter = { clientId: data.clientId, botId: data.botId };
             const update = {
                 $set: data
@@ -31,7 +51,8 @@ class AIManager {
 
             const options = {
                 new: true,
-                upsert: true
+                upsert: true,
+                runValidators: true 
             };
 
             const aiConfig = await AIModel.findOneAndUpdate(filter, update, options).exec();
@@ -41,6 +62,9 @@ class AIManager {
 
             return aiConfig;
         } catch (error: any) {
+            if (error.name === "ValidationError") {
+                 throw new AppError("Erro de validação ao salvar a configuração da IA.", 400, error.errors);
+            }
             throw new AppError("Erro ao salvar a configuração da IA", 400, error);
         }
     }
@@ -57,7 +81,7 @@ class AIManager {
                 clientId,
                 botId,
                 isActive: true
-            }).exec();
+            }).lean().exec();
 
             return aiConfig;
         } catch (error: any) {

@@ -1,10 +1,5 @@
 import mongoose, { Schema, type Model, type Document as MongooseDocument } from "mongoose";
 
-export interface CallingStandard {
-    name: string;
-    enabled: boolean;
-}
-
 export interface CallingUser {
     message: string;
 }
@@ -47,7 +42,8 @@ export interface AutomationActions {
 export interface Calling {
     key: string;
     enabled: boolean;
-    actions: AutomationActions;
+    actions?: AutomationActions;
+    paymentConfig?: PaymentConfig;
 }
 
 export interface IAIModel extends MongooseDocument {
@@ -74,35 +70,43 @@ const TransferToHumanActionSchema = new Schema<TransferToHumanAction>({
     enabled: { type: Boolean, default: false }
 }, { _id: false });
 
-const ScheduleFollowupActionSchema = new Schema<ScheduleFollowupAction>({
-    enabled: { type: Boolean, default: false },
-    delayMinutes: { type: Number, default: null },
-    message: { type: String, default: null }
-}, { _id: false });
-
-const ScheduleReminderActionSchema = new Schema<ScheduleReminderAction>({
-    enabled: { type: Boolean, default: false },
-    delayMinutes: { type: Number, default: null },
-    message: { type: String, default: null }
-}, { _id: false });
-
-const CallingUserSchema = new Schema<CallingUser>({
-    message: { type: String, default: "" }
-}, { _id: false });
-
 const AutomationActionsSchema = new Schema<AutomationActions>({
     sendMessage: { type: SendMessageActionSchema, default: null },
     addTag: { type: AddTagActionSchema, default: null },
-    transferToHuman: { type: TransferToHumanActionSchema, default: null },
-    scheduleFollowup: { type: ScheduleFollowupActionSchema, default: null },
-    scheduleReminder: { type: ScheduleReminderActionSchema, default: null },
-    calling: { type: CallingUserSchema, required: true }
+    transferToHuman: { type: TransferToHumanActionSchema, default: null }
+}, { _id: false });
+
+export interface PaymentValidation {
+    expectedRecipient: string;
+    expectedAmount: number;
+    minimumAmount: number;
+}
+const PaymentValidationSchema = new Schema<PaymentValidation>({
+    expectedRecipient: { type: String, default: "" },
+    expectedAmount: { type: Number, default: 0 },
+    minimumAmount: { type: Number, default: 0 }
+}, { _id: false });
+
+export interface PaymentConfig {
+    validation: PaymentValidation;
+    actionsOnSuccess: AutomationActions;
+    actionsOnValueBelow: AutomationActions;
+    actionsOnValueAbove: AutomationActions;
+    actionsOnValidationFailure: AutomationActions;
+}
+const PaymentConfigSchema = new Schema<PaymentConfig>({
+    validation: { type: PaymentValidationSchema, required: true },
+    actionsOnSuccess: { type: AutomationActionsSchema, required: true },
+    actionsOnValueBelow: { type: AutomationActionsSchema, required: true },
+    actionsOnValueAbove: { type: AutomationActionsSchema, required: true },
+    actionsOnValidationFailure: { type: AutomationActionsSchema, required: true }
 }, { _id: false });
 
 const CallingSchema = new Schema<Calling>({
     key: { type: String, required: true },
     enabled: { type: Boolean, default: false },
-    actions: { type: AutomationActionsSchema, required: true }
+    actions: { type: AutomationActionsSchema, required: false },
+    paymentConfig: { type: PaymentConfigSchema, required: false }
 }, { _id: false });
 
 const AISchema = new Schema<IAIModel>(
