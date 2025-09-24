@@ -61,6 +61,24 @@ class ClientStateManager {
         }
     }
 
+    async markFunnelAsCompleted(phone: string, botId: string) {
+        try {
+            const result = await ClientStateModel.findOneAndUpdate(
+                { "client.phone": phone, botId },
+                { $set: { "client.completedFunnel": true } },
+                { new: true }
+            );
+
+            if (!result) {
+                throw new AppError(`Cliente com telefone ${phone} e botId ${botId} não encontrado`, 404);
+            }
+
+            return result;
+        } catch (error) {
+            console.error(`[markFunnelAsCompleted] Erro ao atualizar funil:`, error);
+            throw error;
+        }
+    }
     async createOrUpdate(
         clientId: string,
         botId: string,
