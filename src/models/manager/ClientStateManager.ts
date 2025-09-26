@@ -22,6 +22,74 @@ class ClientStateManager {
         }
     }
 
+    async findAllgetPaginatedContacts(
+        botId: string,
+        userId: string,
+        page: number = 1,
+        limit: number = 10
+    ) {
+        try {
+            const skip = (page - 1) * limit;
+
+            const aggregationResult = await ClientStateModel.aggregate([
+                { $match: { botId, clientId: userId } },
+                {
+                    $facet: {
+                        paginatedResults: [
+                            { $sort: { lastInteraction: -1 } },
+                            { $skip: skip },
+                            { $limit: limit },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    lastInteraction: 1,
+                                    completedFunnel: 1,
+                                    client: {
+                                        name: "$client.name",
+                                        phone: "$client.phone",
+                                    }
+                                }
+                            }
+                        ],
+                        metrics: [
+                            {
+                                $group: {
+                                    _id: null, 
+                                    total: { $sum: 1 },
+                                    totalFinish: {
+                                        $sum: {
+                                            $cond: [{ $eq: ["$completedFunnel", true] }, 1, 0]
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]);
+
+            const contacts = aggregationResult[0].paginatedResults;
+            const metrics = aggregationResult[0].metrics[0] || { total: 0, totalFinish: 0 };
+
+            const total = metrics.total;
+            const totalFinish = metrics.totalFinish;
+            const totalNotFinish = total - totalFinish;
+            const totalPages = Math.ceil(total / limit);
+
+            return {
+                data: contacts,
+                page,
+                limit,
+                total,
+                totalPages,
+                totalFinish,
+                totalNotFinish
+            };
+        } catch (error) {
+            console.error(`[getPaginatedContacts] Erro ao buscar contatos:`, error);
+            throw new AppError("Ocorreu um erro ao tentar obter os contatos.", 500);
+        }
+    }
     async save(state: IClientState): Promise<IClientState> {
         try {
             const { _id, ...updateData } = state;
