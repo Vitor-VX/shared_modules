@@ -43,7 +43,7 @@ class ClientStateManager {
                                 $project: {
                                     _id: 0,
                                     lastInteraction: 1,
-                                    completedFunnel: 1,
+                                    completedFunnel: "$client.completedFunnel",
                                     client: {
                                         name: "$client.name",
                                         phone: "$client.phone",
@@ -54,11 +54,11 @@ class ClientStateManager {
                         metrics: [
                             {
                                 $group: {
-                                    _id: null, 
+                                    _id: null,
                                     total: { $sum: 1 },
                                     totalFinish: {
                                         $sum: {
-                                            $cond: [{ $eq: ["$completedFunnel", true] }, 1, 0]
+                                            $cond: [{ $eq: ["$client.completedFunnel", true] }, 1, 0]
                                         }
                                     }
                                 }
@@ -90,6 +90,7 @@ class ClientStateManager {
             throw new AppError("Ocorreu um erro ao tentar obter os contatos.", 500);
         }
     }
+
     async save(state: IClientState): Promise<IClientState> {
         try {
             const { _id, ...updateData } = state;
