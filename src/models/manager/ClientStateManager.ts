@@ -1,5 +1,6 @@
 import { ClientStateModel, IClientState } from "../ClientStateModel";
 import { AppError } from '../../utils';
+import { PipelineStage } from "mongoose";
 
 class ClientStateManager {
     async findOne(clientId: string, botId: string, clientPhone: string): Promise<IClientState | null> {
@@ -31,7 +32,7 @@ class ClientStateManager {
         try {
             const skip = (page - 1) * limit;
 
-            const aggregationResult = await ClientStateModel.aggregate([
+            const aggregationPipeline: PipelineStage[] = [
                 { $match: { botId, clientId: userId } },
                 {
                     $facet: {
@@ -51,33 +52,27 @@ class ClientStateManager {
                                 }
                             }
                         ],
-                        metrics: [
-                            {
-                                $group: {
-                                    _id: null,
-                                    total: { $sum: 1 },
-                                    totalFinish: {
-                                        $sum: {
-                                            $cond: [{ $eq: ["$client.completedFunnel", true] }, 1, 0]
-                                        }
-                                    }
-                                }
-                            }
+                        totalCount: [
+                            { $count: "total" }
+                        ],
+                        finishedCount: [
+                            { $match: { "client.completedFunnel": true } },
+                            { $count: "totalFinish" }
                         ]
                     }
                 }
-            ]);
+            ];
 
-            const contacts = aggregationResult[0].paginatedResults;
-            const metrics = aggregationResult[0].metrics[0] || { total: 0, totalFinish: 0 };
+            const result = await ClientStateModel.aggregate(aggregationPipeline);
 
-            const total = metrics.total;
-            const totalFinish = metrics.totalFinish;
+            const data = result[0].paginatedResults;
+            const total = result[0].totalCount[0]?.total || 0;
+            const totalFinish = result[0].finishedCount[0]?.totalFinish || 0;
             const totalNotFinish = total - totalFinish;
             const totalPages = Math.ceil(total / limit);
 
             return {
-                data: contacts,
+                data,
                 page,
                 limit,
                 total,
