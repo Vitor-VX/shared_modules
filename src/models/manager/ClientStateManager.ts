@@ -23,6 +23,44 @@ class ClientStateManager {
         }
     }
 
+    async findContactsByBotIdAndSearch(
+        clientId: string,
+        botId: string,
+        search: string
+    ): Promise<any[]> {
+        try {
+            const searchQuery = search
+                ? {
+                    $or: [
+                        { "client.phone": { $regex: search, $options: "i" } },
+                        { "client.name": { $regex: search, $options: "i" } }
+                    ]
+                }
+                : {};
+
+            return await ClientStateModel.find(
+                {
+                    clientId,
+                    botId,
+                    ...searchQuery
+                },
+                {
+                    _id: 0,
+                    "client.name": 1,
+                    "client.phone": 1,
+                    "client.completedFunnel": 1,
+                    lastInteraction: 1
+                }
+            )
+                .lean()
+                .exec();
+        } catch (error) {
+            console.log(error);
+
+            throw new AppError(`Erro ao buscar clientes no DB.`, 500, error);
+        }
+    }
+
     async findAllgetPaginatedContacts(
         botId: string,
         userId: string,
