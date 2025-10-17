@@ -132,7 +132,7 @@ class ClientStateManager {
                 { clientId: state.clientId, botId: state.botId, "client.phone": state.client.phone },
                 { $set: updateData },
                 { upsert: true, new: true }
-            ).exec();
+            ).lean<IClientState>().exec();
         } catch (error) {
             throw new AppError("Erro ao salvar estado do cliente no DB.", 500, error);
         }
@@ -206,7 +206,9 @@ class ClientStateManager {
             };
 
             const options = { upsert: true, new: true };
-            const clientState = await ClientStateModel.findOneAndUpdate(filter, update, options).exec();
+            const clientState = await ClientStateModel.findOneAndUpdate(filter, update, options)
+                .lean<IClientState>()
+                .exec();
             if (!clientState) return null;
 
             return clientState;
