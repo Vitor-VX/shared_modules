@@ -10,22 +10,18 @@ export interface IAICreate {
     isActive?: boolean;
     isActiveTranscribe?: boolean;
     callings?: Calling[];
-};
+}
 
 export interface ICallingStatusUpdate {
     key: string;
     enabled: boolean;
-};
+}
 
 class AIManager {
-    /**
-     * Cria ou atualiza a configuração de IA para um bot específico.
-     * Usa upsert para simplificar a lógica: se não existir, cria; se existir, atualiza.
-     */
-   async saveAIConfiguration(data: IAICreate): Promise<IAIModel> {
+    async saveAIConfiguration(data: IAICreate): Promise<IAIModel> {
         try {
             if (data.callings && Array.isArray(data.callings)) {
-                const processedCallings = data.callings.map(calling => {
+                data.callings = data.callings.map(calling => {
                     const newCalling: Calling = {
                         key: calling.key,
                         enabled: calling.enabled,
@@ -33,7 +29,7 @@ class AIManager {
 
                     if (calling.key === "payment_made") {
                         newCalling.paymentConfig = calling.paymentConfig;
-                        delete (newCalling as any).actions; 
+                        delete (newCalling as any).actions;
                     } else {
                         newCalling.actions = calling.actions;
                         delete (newCalling as any).paymentConfig;
@@ -41,64 +37,40 @@ class AIManager {
 
                     return newCalling;
                 });
-                data.callings = processedCallings;
             }
 
             const filter = { clientId: data.clientId, botId: data.botId };
-            const update = {
-                $set: data
-            };
+            const update = { $set: data };
+            const options = { new: true, upsert: true, runValidators: true };
 
-            const options = {
-                new: true,
-                upsert: true,
-                runValidators: true 
-            };
+            const aiConfig = await AIModel.findOneAndUpdate(filter, update, options)
+                .lean<IAIModel>()
+                .exec();
 
-            const aiConfig = await AIModel.findOneAndUpdate(filter, update, options).exec();
-            if (!aiConfig) {
-                throw new AppError("Não foi possível salvar a configuração da IA.", 500);
-            }
-
+            if (!aiConfig) throw new AppError("Não foi possível salvar a configuração da IA.", 500);
             return aiConfig;
         } catch (error: any) {
             if (error.name === "ValidationError") {
-                 throw new AppError("Erro de validação ao salvar a configuração da IA.", 400, error.errors);
+                throw new AppError("Erro de validação ao salvar a configuração da IA.", 400, error.errors);
             }
             throw new AppError("Erro ao salvar a configuração da IA", 400, error);
         }
     }
 
-    /**
-     * Busca a configuração de IA ativa para um bot específico.
-     * Este é o método principal que o Gateway usará para obter as instruções da IA.
-     * @param clientId O ID do cliente (usuário do seu SAAS).
-     * @param phone O número do bot.
-     */
     async getActiveAIConfig(clientId: string, botId: string): Promise<IAIModel | null> {
         try {
-            const aiConfig = await AIModel.findOne({
-                clientId,
-                botId,
-                isActive: true
-            }).lean().exec();
-
-            return aiConfig;
+            return await AIModel.findOne({ clientId, botId, isActive: true })
+                .lean<IAIModel>()
+                .exec();
         } catch (error: any) {
             throw new AppError("Erro ao buscar a configuração da IA", 500, error);
         }
     }
 
-    /**
-   * Busca uma configuração de IA por qualquer filtro.
-   * Útil para painéis de admin ou verificações internas.
-   */
     async getAIConfig(filter: FilterQuery<IAIModel>): Promise<IAIModel> {
         try {
-            const aiConfig = await AIModel.findOne(filter).exec();
-            if (!aiConfig) {
-                throw new AppError("Configuração de IA não encontrada.", 404);
-            }
+            const aiConfig = await AIModel.findOne(filter).lean<IAIModel>().exec();
+            if (!aiConfig) throw new AppError("Configuração de IA não encontrada.", 404);
             return aiConfig;
         } catch (error: any) {
             if (error instanceof AppError) throw error;
@@ -106,7 +78,11 @@ class AIManager {
         }
     }
 
-    async updateCallingStatuses(clientId: string, botId: string, updates: ICallingStatusUpdate[]): Promise<MongooseBulkWriteResult> {
+    async updateCallingStatuses(
+        clientId: string,
+        botId: string,
+        updates: ICallingStatusUpdate[]
+    ): Promise<MongooseBulkWriteResult> {
         try {
             if (!updates || updates.length === 0) {
                 return {
@@ -118,59 +94,50 @@ class AIManager {
                     deletedCount: 0,
                     upsertedCount: 0,
                     upsertedIds: {},
-                    insertedIds: {}
+                    insertedIds: {},
                 } as unknown as MongooseBulkWriteResult;
             }
 
             const bulkOperations = updates.map(update => ({
                 updateOne: {
-                    filter: {
-                        clientId,
-                        botId,
-                        "callings.key": update.key
-                    },
-                    update: {
-                        $set: { "callings.$.enabled": update.enabled }
-                    }
-                }
+                    filter: { clientId, botId, "callings.key": update.key },
+                    update: { $set: { "callings.$.enabled": update.enabled } },
+                },
             }));
 
-            const result = await AIModel.bulkWrite(bulkOperations);
-            return result;
+            return await AIModel.bulkWrite(bulkOperations);
         } catch (error: any) {
             throw new AppError("Erro ao executar a atualização em massa das callings", 500, error);
         }
     }
 
-    /**
-     * Atualiza parcialmente a configuração de IA de um bot.
-     */
-    async updateAIConfig(clientId: string, botId: string, update: UpdateQuery<IAIModel>): Promise<IAIModel | null> {
+    async updateAIConfig(
+        clientId: string,
+        botId: string,
+        update: UpdateQuery<IAIModel>
+    ): Promise<IAIModel | null> {
         try {
             const aiConfig = await AIModel.findOneAndUpdate(
                 { clientId, botId },
                 update,
                 { new: true }
-            ).exec();
+            )
+                .lean<IAIModel>()
+                .exec();
 
-            if (!aiConfig) {
+            if (!aiConfig)
                 throw new AppError("Configuração de IA não encontrada para atualização", 404);
-            }
             return aiConfig;
         } catch (error: any) {
             throw new AppError("Erro ao atualizar a configuração da IA", 400, error);
         }
     }
 
-    /**
-     * Deleta a configuração de IA de um bot.
-     */
     async deleteAIConfig(clientId: string, botId: string): Promise<{ deletedCount: number }> {
         try {
             const result = await AIModel.deleteOne({ clientId, botId }).exec();
-            if (result.deletedCount === 0) {
+            if (result.deletedCount === 0)
                 throw new AppError("Configuração de IA não encontrada para exclusão", 404);
-            }
             return result;
         } catch (error: any) {
             throw new AppError("Erro ao deletar a configuração da IA", 500, error);
