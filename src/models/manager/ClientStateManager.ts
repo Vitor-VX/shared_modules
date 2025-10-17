@@ -9,7 +9,8 @@ class ClientStateManager {
                 clientId,
                 botId,
                 "client.phone": clientPhone,
-            }).lean().exec();
+            }).lean<IClientState>()
+                .exec();
         } catch (error) {
             throw new AppError("Erro ao buscar estado do cliente no DB.", 500, error);
         }
@@ -17,7 +18,8 @@ class ClientStateManager {
 
     async findAll(clientId: string, botId: string): Promise<IClientState[]> {
         try {
-            return await ClientStateModel.find({ clientId, botId }).lean().exec();
+            return await ClientStateModel.find({ clientId, botId }).lean<IClientState[]>()
+                .exec();
         } catch (error) {
             throw new AppError(`Erro ao buscar todos os clientes no DB.`, 500, error);
         }
@@ -52,7 +54,7 @@ class ClientStateManager {
                     lastInteraction: 1
                 }
             )
-                .lean()
+                .lean<IClientState[]>()
                 .exec();
         } catch (error) {
             console.log(error);
