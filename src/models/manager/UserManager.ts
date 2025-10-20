@@ -173,6 +173,61 @@ export class UserManager {
         }
     }
 
+    public static async verifyEmail(verificationToken: string): Promise<IUser | null> {
+        try {
+            if (!verificationToken || typeof verificationToken !== "string") {
+                throw new AppError("Token de verificação de email inválido.", 400);
+            }
+
+            const user = await User.findOne({
+                "emailVerification.token": verificationToken,
+                "emailVerification.verified": false,
+            });
+
+            if (!user) return null;
+
+            user.emailVerification.verified = true;
+            user.emailVerification.token = "";
+            user.emailVerification.createdAt = null;
+
+            await user.save();
+            return user.toObject() as IUser;
+        } catch (error: any) {
+            console.error(`Erro ao verificar email com token ${verificationToken}:`, error);
+            if (error instanceof AppError) throw error;
+            throw new AppError(`Não foi possível verificar o email: ${error.message || "Erro desconhecido"}`, 500);
+        }
+    }
+
+    public static async setEmailVerificationToken(userId: string, newToken: string): Promise<IUser | null> {
+        try {
+            if (!userId || typeof userId !== "string" || !User.base.Types.ObjectId.isValid(userId)) {
+                throw new AppError("ID do usuário inválido.", 400);
+            }
+            if (!newToken || typeof newToken !== "string") {
+                throw new AppError("Novo token de verificação de email inválido.", 400);
+            }
+
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                {
+                    $set: {
+                        "emailVerification.token": newToken,
+                        "emailVerification.createdAt": new Date(),
+                        "emailVerification.verified": false
+                    }
+                },
+                { new: true, runValidators: true }
+            ).lean<IUser>();
+
+            return updatedUser || null;
+        } catch (error: any) {
+            console.error(`Erro ao definir token de verificação de email para usuário ${userId}:`, error);
+            if (error instanceof AppError) throw error;
+            throw new AppError(`Não foi possível definir o token de verificação de email: ${error.message || "Erro desconhecido"}`, 500);
+        }
+    }
+
     public static async assignPlanToUser(userId: string, planName: string, extraSlots: number): Promise<IUser | null> {
         try {
             if (!userId || !User.base.Types.ObjectId.isValid(userId)) {
