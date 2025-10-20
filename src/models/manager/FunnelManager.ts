@@ -122,6 +122,9 @@ class FunnelManager {
             }
             return funnel;
         } catch (error: any) {
+            if (error instanceof AppError) {
+                throw error;
+            }
             throw new AppError("Erro ao atualizar funil", 400, error);
         }
     }
@@ -137,6 +140,9 @@ class FunnelManager {
             }
             return result;
         } catch (error: any) {
+            if (error instanceof AppError) {
+                throw error;
+            }
             throw new AppError("Erro ao deletar funil", 500, error);
         }
     }
