@@ -228,7 +228,26 @@ export class UserManager {
         }
     }
 
-    public static async assignPlanToUser(userId: string, planName: string, extraSlots: number): Promise<IUser | null> {
+    public static async updateUserPlanSlots(userId: string, newSlotCount: number): Promise<IUser | null> {
+        try {
+            if (!userId || !User.base.Types.ObjectId.isValid(userId)) {
+                throw new AppError("ID inválido para atualizar slots.", 400);
+            }
+
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { $set: { "plan.extraSlots": newSlotCount } },
+                { new: true, runValidators: true }
+            ).lean<IUser>();
+
+            return updatedUser || null;
+        } catch (error: any) {
+            console.error(`Erro ao atualizar slots do usuário ${userId}:`, error);
+            throw new AppError("Não foi possível atualizar os slots do usuário.", 500);
+        }
+    }
+
+    public static async assignPlanToUser(userId: string, sessionId: string, planName: string, extraSlots: number): Promise<IUser | null> {
         try {
             if (!userId || !User.base.Types.ObjectId.isValid(userId)) {
                 throw new AppError("ID inválido para atribuição de plano.", 400);
@@ -242,6 +261,7 @@ export class UserManager {
                 userId,
                 {
                     $set: {
+                        "plan.id": sessionId,
                         "plan.name": planName,
                         "plan.purchasedAt": purchasedAt,
                         "plan.expiresAt": expiresAt,

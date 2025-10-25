@@ -13,6 +13,7 @@ export interface IUser extends Document {
         isActivated: boolean;
     };
     plan: {
+        id: string;
         name: TypePayment;
         purchasedAt: Date | null;
         expiresAt: Date | null;
@@ -40,6 +41,7 @@ const UserSchema = new Schema<IUser>(
         },
 
         plan: {
+            id: { type: String, default: "" },
             name: {
                 type: String,
                 enum: [TypePayment.NONE, TypePayment.STANDARD, TypePayment.BUSINESS, TypePayment.ENTERPRISE],

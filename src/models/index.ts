@@ -5,5 +5,6 @@ export * from "./ClientStateModel";
 export * from "./MetricsModel";
 export * from "./UserModel";
 export * from "./AIMetricsModel";
+export * from "./Subscription";
 
 export * from "./manager";

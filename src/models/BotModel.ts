@@ -2,7 +2,6 @@ import mongoose, { Schema, Document, type Model } from "mongoose";
 
 export interface IBot extends Document {
     clientId: string;
-    phone: string;
     sessionId: string;
     name: string;
     replicaNumber: number;
@@ -17,10 +16,6 @@ export type IBotCreate = Omit<IBot, keyof Document>;
 const BotSchema = new Schema<IBot>(
     {
         clientId: {
-            type: String,
-            required: true
-        },
-        phone: {
             type: String,
             required: true
         },

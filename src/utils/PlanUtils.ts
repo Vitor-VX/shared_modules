@@ -1,10 +1,12 @@
+import { ISubscription } from "../models";
 import { IUser } from "../models/UserModel";
+import { TypePayment } from "./TypePayment";
 
 /**
  * Retorna true se o plano do cliente está ativo.
  */
-export function isPlanActive(client: IUser): boolean {
-    const expiresAt = client.plan?.expiresAt;
+export function isPlanActive(planUser: ISubscription): boolean {
+    const expiresAt = planUser.expiresAt;
     if (!expiresAt) return false;
 
     return new Date(expiresAt).getTime() > Date.now();
@@ -13,8 +15,8 @@ export function isPlanActive(client: IUser): boolean {
 /**
  * Retorna true se o plano expirou.
  */
-export function isPlanExpired(client: IUser): boolean {
-    const expiresAt = client.plan?.expiresAt;
+export function isPlanExpired(planUser: ISubscription): boolean {
+    const expiresAt = planUser.expiresAt;
     if (!expiresAt) return true;
 
     return new Date(expiresAt).getTime() <= Date.now();
@@ -27,15 +29,13 @@ export function isPlanExpired(client: IUser): boolean {
  * 3 = Enterprise
  * 0 = Nenhum (ou plano inválido)
  */
-export function getPlanLevel(client: IUser): number {
-    const planName = client.plan?.name?.toLowerCase();
-
+export function getPlanLevel(planName: TypePayment | null = null): number {
     switch (planName) {
-        case "standard":
+        case TypePayment.STANDARD:
             return 1;
-        case "business":
+        case TypePayment.BUSINESS:
             return 2;
-        case "enterprise":
+        case TypePayment.ENTERPRISE:
             return 3;
         default:
             return 0;
@@ -46,8 +46,8 @@ export function getPlanLevel(client: IUser): number {
  * Retorna quantos dias faltam para o plano expirar.
  * Se já expirou, retorna número negativo.
  */
-export function getDaysUntilExpiration(client: IUser): number {
-    const expiresAt = client.plan?.expiresAt;
+export function getDaysUntilExpiration(planUser: ISubscription): number {
+    const expiresAt = planUser.expiresAt;
     if (!expiresAt) return -999;
 
     const diff = new Date(expiresAt).getTime() - Date.now();
@@ -57,15 +57,15 @@ export function getDaysUntilExpiration(client: IUser): number {
 /**
  * Retorna true se o plano expira em até X dias (por padrão, 7)
  */
-export function willExpireSoon(client: IUser, daysBefore: number = 7): boolean {
-    const daysRemaining = getDaysUntilExpiration(client);
+export function willExpireSoon(planUser: ISubscription, daysBefore: number = 7): boolean {
+    const daysRemaining = getDaysUntilExpiration(planUser);
     return daysRemaining > 0 && daysRemaining <= daysBefore;
 }
 
 /**
  * Retorna true se o cliente possui slots disponíveis.
  */
-export function hasAvailableSlots(client: IUser, usedSlots: number): boolean {
+export function hasAvailableSlots(planUser: ISubscription, usedSlots: number): boolean {
     const planLimits: Record<string, number> = {
         none: 0,
         standard: 1,
@@ -73,8 +73,11 @@ export function hasAvailableSlots(client: IUser, usedSlots: number): boolean {
         enterprise: 4,
     };
 
-    const planName = client.plan?.name || "none";
-    const extraSlots = client.plan?.extraSlots || 0;
+    const planName = planUser.planName || "none";
+    const extraSlots = planUser.extraSlots?.slots?.reduce(
+        (acc: number, s: { count: number }) =>
+            acc + (s.count ?? 0), 0,
+    ) ?? 0;
     const maxAllowed = planLimits[planName] + extraSlots;
 
     return usedSlots < maxAllowed;
