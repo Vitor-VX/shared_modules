@@ -6,7 +6,7 @@ export interface MetricAI extends Document {
     number: string;
     lastMessage: string;
     botName: string;
-    botNumber: string;
+    botId: string;
     category: string;
     reason: string;
     timestamp: string;
@@ -17,8 +17,8 @@ const MetricAISchema = new mongoose.Schema<MetricAI>({
     name: { type: String, required: true },
     number: { type: String, required: true },
     lastMessage: { type: String, required: true },
-    botNumber: { type: String, required: true },
     botName: { type: String, required: true },
+    botId: { type: String, required: true },
     category: { type: String, required: true },
     reason: { type: String, required: true },
     timestamp: { type: String, required: true },
