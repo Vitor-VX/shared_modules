@@ -66,6 +66,22 @@ export class SubscriptionManager {
         }
     }
 
+    static async cancelSubscription(clientId: string, reason: string): Promise<ISubscription | null> {
+        try {
+            const sub = await this.getActiveSubscription(clientId);
+            if (!sub) throw new AppError("Assinatura ativa não encontrada para cancelamento.", 404);
+
+            sub.status = "cancelled";
+            await sub.save();
+
+            console.log(`[SubscriptionManager] Assinatura cancelada para clientId=${clientId}. Motivo: ${reason}`);
+            return sub;
+        } catch (error: any) {
+            this.log("cancelSubscription", error);
+            throw new AppError("Erro ao cancelar assinatura", 500, error);
+        }
+    }
+
     static async isExpiringSoon(clientId: string): Promise<boolean> {
         try {
             const sub = await this.getActiveSubscription(clientId);

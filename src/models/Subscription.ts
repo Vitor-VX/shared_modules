@@ -9,7 +9,7 @@ export interface IExtraSlot {
 export interface ISubscription extends Document {
     clientId: string;
     planName: TypePayment;
-    status: "active" | "expired";
+    status: "active" | "expired" | "cancelled" | "refunded";
     startDate: Date;
     expiresAt: Date;
     paymentID: string;
@@ -50,7 +50,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
         },
         status: {
             type: String,
-            enum: ["active", "expired"],
+            enum: ["active", "expired", "cancelled", "refunded"],
             default: "active",
         },
         startDate: { type: Date, default: Date.now },

@@ -5,3 +5,4 @@ export * from "./ClientStateManager";
 export * from "./UserManager";
 export * from "./MetricAIManager";
 export * from "./SubscriptionManager";
+export * from "./RefundManager";
