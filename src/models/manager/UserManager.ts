@@ -119,32 +119,6 @@ export class UserManager {
         }
     }
 
-    public static async activateUser(activationToken: string): Promise<IUser | null> {
-        try {
-            if (!activationToken || typeof activationToken !== "string") {
-                throw new AppError("Token de ativação inválido.", 400);
-            }
-
-            const user = await User.findOne({
-                "activation.token": activationToken,
-                "activation.isActivated": false
-            });
-
-            if (!user) return null;
-
-            user.activation.isActivated = true;
-            user.activation.token = "";
-            user.activation.createdAt = null;
-
-            await user.save();
-            return user.toObject() as IUser;
-        } catch (error: any) {
-            console.error(`Erro ao ativar usuário com token ${activationToken}:`, error);
-            if (error instanceof AppError) throw error;
-            throw new AppError(`Não foi possível ativar o usuário: ${error.message || "Erro desconhecido"}`, 500);
-        }
-    }
-
     public static async setActivationToken(userId: string, newToken: string): Promise<IUser | null> {
         try {
             if (!userId || !User.base.Types.ObjectId.isValid(userId)) {

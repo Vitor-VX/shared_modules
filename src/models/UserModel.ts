@@ -7,18 +7,6 @@ export interface IUser extends Document {
     password: string;
     phone: string;
     sessionToken: string;
-    activation: {
-        token: string;
-        createdAt: Date | null;
-        isActivated: boolean;
-    };
-    plan: {
-        id: string;
-        name: TypePayment;
-        purchasedAt: Date | null;
-        expiresAt: Date | null;
-        extraSlots: number | 0;
-    };
     emailVerification: {
         token: string;
         createdAt: Date | null;
@@ -33,25 +21,6 @@ const UserSchema = new Schema<IUser>(
         password: { type: String, required: true },
         phone: { type: String, required: true },
         sessionToken: { type: String, default: "" },
-
-        activation: {
-            token: { type: String, default: "" },
-            createdAt: { type: Date, default: null },
-            isActivated: { type: Boolean, default: false }
-        },
-
-        plan: {
-            id: { type: String, default: "" },
-            name: {
-                type: String,
-                enum: [TypePayment.NONE, TypePayment.STANDARD, TypePayment.BUSINESS, TypePayment.ENTERPRISE],
-                default: TypePayment.NONE
-            },
-            purchasedAt: { type: Date, default: null },
-            expiresAt: { type: Date, default: null },
-            extraSlots: { type: Number, default: 0 }
-        },
-
         emailVerification: {
             token: { type: String, default: "" },
             createdAt: { type: Date, default: null },
