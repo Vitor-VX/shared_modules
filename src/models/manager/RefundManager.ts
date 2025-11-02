@@ -40,4 +40,27 @@ export class RefundManager {
             throw new AppError("Erro ao buscar reembolsos por pagamento.", 500, error);
         }
     }
+
+    static async updateRefund(
+        sessionId: string,
+        updates: Partial<IRefund>
+    ): Promise<IRefund | null> {
+        try {
+            const refund = await RefundModel.findOneAndUpdate(
+                { sessionId },
+                { $set: { ...updates, updatedAt: new Date() } },
+                { new: true }
+            );
+
+            if (!refund) {
+                throw new AppError("Reembolso não encontrado para atualização.", 404);
+            }
+
+            return refund;
+        } catch (error) {
+            console.error("[RefundManager:updateRefund]", error);
+            if (error instanceof AppError) throw error;
+            throw new AppError("Erro ao atualizar registro de reembolso.", 500, error);
+        }
+    }
 };
