@@ -61,6 +61,7 @@ export class SubscriptionManager {
             await sub.save();
             return sub;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("upgradeSubscription", error);
             throw new AppError("Erro ao processar upgrade de plano", 500, error);
         }
@@ -77,6 +78,7 @@ export class SubscriptionManager {
             console.log(`[SubscriptionManager] Assinatura cancelada para clientId=${clientId}. Motivo: ${reason}`);
             return sub;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("cancelSubscription", error);
             throw new AppError("Erro ao cancelar assinatura", 500, error);
         }
@@ -93,6 +95,7 @@ export class SubscriptionManager {
 
             return diffDays <= 7 && diffDays > 0;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("isExpiringSoon", error);
             throw new AppError("Erro ao verificar expiração da assinatura", 500, error);
         }
@@ -102,6 +105,7 @@ export class SubscriptionManager {
         try {
             return await SubscriptionModel.findOne({ clientId, status: "active" }).exec();
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("getActiveSubscription", error);
             throw new AppError("Erro ao buscar assinatura ativa", 500, error);
         }
@@ -119,6 +123,7 @@ export class SubscriptionManager {
             }
             return true;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("isSubscriptionValid", error);
             return false;
         }
@@ -128,6 +133,7 @@ export class SubscriptionManager {
         try {
             await SubscriptionModel.findByIdAndUpdate(subscriptionId, { $set: { status: "expired" } }).exec();
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("expireSubscription", error);
             throw new AppError("Erro ao expirar assinatura", 500, error);
         }
@@ -158,6 +164,7 @@ export class SubscriptionManager {
             await sub.save();
             return sub;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("renewSubscription", error);
             throw new AppError("Erro ao renovar assinatura", 500, error);
         }
@@ -173,6 +180,7 @@ export class SubscriptionManager {
             await sub.save();
             return sub;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
             this.log("addExtraSlots", error);
             throw new AppError("Erro ao adicionar slots extras", 500, error);
         }
@@ -187,6 +195,8 @@ export class SubscriptionManager {
             await sub.save();
             return sub;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
+
             this.log("removeExtraSlotsByPayment", error);
             throw new AppError("Erro ao remover slots extras", 500, error);
         }
