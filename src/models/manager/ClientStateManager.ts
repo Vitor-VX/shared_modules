@@ -146,7 +146,7 @@ class ClientStateManager {
                 clientId,
                 botId,
                 "client.phone": clientPhone
-            }).exec();
+            }).lean().exec();
 
             return result;
         } catch (error) {
@@ -159,7 +159,7 @@ class ClientStateManager {
             await ClientStateModel.deleteMany({
                 clientId,
                 botId
-            }).exec();
+            }).lean<IClientState>().exec();
         } catch (error) {
             throw new AppError("Erro ao deletar todos os estados do bot no DB.", 500, error);
         }
