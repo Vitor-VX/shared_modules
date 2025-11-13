@@ -171,7 +171,7 @@ class ClientStateManager {
                 { "client.phone": phone, botId },
                 { $set: { "client.completedFunnel": true } },
                 { new: true }
-            );
+            ).lean<IClientState>().exec()
 
             if (!result) {
                 throw new AppError(`Cliente com telefone ${phone} e botId ${botId} não encontrado`, 404);

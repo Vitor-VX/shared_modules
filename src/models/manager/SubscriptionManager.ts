@@ -29,6 +29,8 @@ export class SubscriptionManager {
                 }
             });
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
+            
             this.log("createSubscription", error);
             throw new AppError("Erro ao criar assinatura", 500, error);
         }
