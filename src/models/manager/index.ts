@@ -7,3 +7,4 @@ export * from "./MetricAIManager";
 export * from "./SubscriptionManager";
 export * from "./RefundManager";
 export * from "./PaymentsGtManager";
+export * from "./NotifyManager";
