@@ -262,6 +262,8 @@ export class UserManager {
 
             return user.toObject() as IUser;
         } catch (error: any) {
+            if (error instanceof AppError) throw error;
+            
             throw new AppError(`Erro ao verificar credenciais: ${error.message}`, 500);
         }
     }
