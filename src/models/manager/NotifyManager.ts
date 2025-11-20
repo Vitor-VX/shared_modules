@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 export class NotifyManager {
     static async create(data: {
+        clientId: string,
         name: string;
         email: string;
         device: { ip: string; token: string } | null;
@@ -16,6 +17,7 @@ export class NotifyManager {
             const existing = await Notify.findOne({ email: data.email });
 
             if (existing) {
+                existing.clientId = data.clientId;
                 existing.name = data.name;
                 existing.device = data.device || null;
                 await existing.save();
@@ -23,6 +25,7 @@ export class NotifyManager {
             }
 
             const newNotif = new Notify({
+                clientId: data.clientId,
                 name: data.name,
                 email: data.email,
                 device: data.device || null
