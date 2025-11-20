@@ -7,7 +7,7 @@ export class NotifyManager {
         clientId: string,
         name: string;
         email: string;
-        device: { jwt: string; token: string } | null;
+        device: { token: string } | null;
     }): Promise<INotify> {
         try {
             if (!data.email) {
