@@ -5,13 +5,13 @@ export interface INotify extends Document {
     name: string;
     email: string;
     device: {
-        ip: string | null;
+        jwt: string | null;
         token: string | null;
     } | null;
 };
 
 const DeviceSchema = new Schema({
-    ip: { type: String, default: "" },
+    jwt: { type: String, default: "" },
     token: { type: String, default: "", required: true }
 });
 
