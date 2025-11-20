@@ -1,6 +1,7 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
 export interface INotify extends Document {
+    clientId: string;
     name: string;
     email: string;
     device: {
@@ -16,6 +17,7 @@ const DeviceSchema = new Schema({
 
 const NotifySchema = new Schema<INotify>(
     {
+        clientId: { type: String, required: true },
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         device: { type: DeviceSchema, default: null }

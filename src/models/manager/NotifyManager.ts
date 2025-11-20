@@ -49,7 +49,7 @@ export class NotifyManager {
                 throw new AppError("ID inválido.", 400);
             }
 
-            const notif = await Notify.findById(id).lean<INotify>().select("-__v");
+            const notif = await Notify.findOne({ clientId: id });
             if (!notif) throw new AppError("Notify não encontrado.", 404);
 
             return notif;
