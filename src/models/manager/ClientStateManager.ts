@@ -51,6 +51,7 @@ class ClientStateManager {
                     "client.name": 1,
                     "client.phone": 1,
                     "client.completedFunnel": 1,
+                    "client.variables": 0,
                     lastInteraction: 1
                 }
             )
@@ -134,7 +135,23 @@ class ClientStateManager {
                 { clientId: state.clientId, botId: state.botId, "client.phone": state.client.phone },
                 { $set: updateData },
                 { upsert: true, new: true }
-            ).lean<IClientState>().exec();
+            ).exec();
+        } catch (error) {
+            throw new AppError("Erro ao salvar estado do cliente no DB.", 500, error);
+        }
+    }
+
+    async saveVariables(state: IClientState): Promise<IClientState> {
+        try {
+            return await ClientStateModel.findOneAndUpdate(
+                { clientId: state.clientId, botId: state.botId, "client.phone": state.client.phone },
+                {
+                    $set: {
+                        "client.variables": state.client.variables
+                    }
+                },
+                { upsert: true, new: true }
+            ).exec();
         } catch (error) {
             throw new AppError("Erro ao salvar estado do cliente no DB.", 500, error);
         }
@@ -183,6 +200,41 @@ class ClientStateManager {
             throw error;
         }
     }
+
+    async saveVariable(
+        clientId: string,
+        botId: string,
+        clientPhone: string,
+        key: string,
+        value: any
+    ): Promise<IClientState | null> {
+        try {
+            const result = await ClientStateModel.findOneAndUpdate(
+                {
+                    clientId,
+                    botId,
+                    "client.phone": clientPhone
+                },
+                {
+                    $set: {
+                        [`client.variables.${key}`]: value
+                    }
+                },
+                {
+                    new: true,
+                    upsert: true
+                }
+            ).exec();
+
+            console.log(result);
+
+            return result;
+        } catch (error) {
+            console.error(`[saveVariable] Erro ao salvar variável ${key}:`, error);
+            throw new AppError("Erro ao salvar variável do cliente.", 500, error);
+        }
+    }
+
     async createOrUpdate(
         clientId: string,
         botId: string,
@@ -200,6 +252,7 @@ class ClientStateManager {
                     "client.currentNode": "1",
                     "client.completedFunnel": false,
                     "client.waiting": false,
+                    "client.variables": {}
                 },
                 $set: {
                     "client.name": clientName,

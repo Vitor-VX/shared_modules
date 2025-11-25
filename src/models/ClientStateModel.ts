@@ -6,6 +6,7 @@ export interface IClientInfo {
     currentNode: string;
     waiting: boolean;
     completedFunnel: boolean;
+    variables: Record<string, any>;
 };
 
 export interface IClientState extends MongooseDocument {
@@ -20,7 +21,11 @@ const ClientInfoSchema = new Schema<IClientInfo>({
     name: { type: String, required: true },
     currentNode: { type: String, default: "1" },
     waiting: { type: Boolean, default: false },
-    completedFunnel: { type: Boolean, default: false }
+    completedFunnel: { type: Boolean, default: false },
+    variables: {
+        type: Schema.Types.Mixed,
+        default: {}
+    }
 }, { _id: false });
 
 const ClientStateSchema = new Schema<IClientState>(
