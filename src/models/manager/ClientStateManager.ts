@@ -51,7 +51,6 @@ class ClientStateManager {
                     "client.name": 1,
                     "client.phone": 1,
                     "client.completedFunnel": 1,
-                    "client.variables": 0,
                     lastInteraction: 1
                 }
             )
