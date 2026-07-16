@@ -135,9 +135,6 @@ class FunnelManager {
     ): Promise<{ deletedCount: number }> {
         try {
             const result = await FunnelModel.deleteOne({ clientId, botId }).exec();
-            if (result.deletedCount === 0) {
-                throw new AppError("Funil não encontrado para exclusão", 404);
-            }
             return result;
         } catch (error: any) {
             if (error instanceof AppError) {
