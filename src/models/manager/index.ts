@@ -8,3 +8,4 @@ export * from "./SubscriptionManager";
 export * from "./RefundManager";
 export * from "./PaymentsGtManager";
 export * from "./NotifyManager";
+export * from "./ContingencyManager";

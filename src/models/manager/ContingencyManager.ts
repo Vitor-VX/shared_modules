@@ -34,7 +34,6 @@ class ContingencyManager {
     async getContingencyByBotId(botId: string): Promise<IContingency | null> {
         try {
             const contingency = await ContingencyModel.findOne({ botId }).exec();
-            // Retorna null caso não tenha contingência configurada para o bot, sem estourar erro impeditivo
             return contingency;
         } catch (error: any) {
             throw new AppError("Erro ao buscar contingência pelo ID do bot", 400, error);
