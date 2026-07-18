@@ -45,7 +45,12 @@ const ContingencySchema = new Schema<IContingency>(
             default: ""
         },
         campaignIds: {
-            type: [String],
+            type: [
+                {
+                    id: { type: String, required: true },
+                    name: { type: String, required: true }
+                }
+            ],
             default: []
         }
     },
