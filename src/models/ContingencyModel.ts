@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document, type Model } from "mongoose";
 
+interface ICampaignIds {
+    id: string;
+    name: string;
+}
+
 export interface IContingency extends Document {
     clientId: string;
     sessionId: string;
@@ -7,7 +12,7 @@ export interface IContingency extends Document {
     token: string;
     adAccountId: string;
     adAccountName?: string;
-    campaignIds: string[];
+    campaignIds: ICampaignIds[];
 }
 
 export type IContingencyCreate = Omit<IContingency, keyof Document>;
