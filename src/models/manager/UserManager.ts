@@ -110,8 +110,12 @@ export class UserManager {
         if (!updated) throw new AppError("Usuário não encontrado.", 404);
     }
 
+    static async emailExists(email: string): Promise<boolean> {
+        const user = await User.exists({ email });
+        return !!user;
+    }
 
-      static async setEmailVerification(userId: string, tk: string): Promise<string> {
+    static async setEmailVerification(userId: string, tk: string): Promise<string> {
         const updated = await User.findByIdAndUpdate(
             userId,
             {
