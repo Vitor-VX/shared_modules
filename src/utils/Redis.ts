@@ -1,29 +1,19 @@
-import { type RedisClientType, createClient } from '@redis/client';
+import Redis from "ioredis";
 
 const REDIS_URL = process.env.REDIS_URL || "redis://meu-redis:6379";
-const redisClient = createClient({ url: REDIS_URL });
 
-const redisSubscriberClient = redisClient.duplicate();
+export const redis = new Redis(REDIS_URL, {
+  maxRetriesPerRequest: null,
+  retryStrategy(times) {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+});
 
-async function connectRedis() {
-    if (redisClient.isReady && redisSubscriberClient.isReady) {
-        return;
-    }
-    try {
-        await Promise.all([
-            redisClient.connect(),
-            redisSubscriberClient.connect()
-        ]);
-        console.log(`[Redis] Conexão estabelecida com sucesso para o processo PID: ${process.pid}`);
-    } catch (error) {
-        console.error('[Redis] Falha crítica ao conectar:', error);
-    }
-}
+redis.on("connect", () => {
+  console.log(`[Redis] Conectado (PID: ${process.pid})`);
+});
 
-redisClient.on('error', err => console.error('[Redis Client Error]', err));
-redisSubscriberClient.on('error', err => console.error('[Redis Subscriber Error]', err));
-
-const redis: RedisClientType<any, any> = redisClient;
-const redisSubscriber: RedisClientType<any, any> = redisSubscriberClient;
-
-export { redis, redisSubscriber, connectRedis }
+redis.on("error", (err) => {
+  console.error("[Redis] Erro:", err);
+});
