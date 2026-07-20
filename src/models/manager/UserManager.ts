@@ -43,7 +43,7 @@ export class UserManager {
         password: string
     ): Promise<IUser> {
         const user = await User.findOne({ email });
-        if (!user) throw new AppError("Credenciais inválidas.", 401);
+        if (!user) throw new AppError("Usuário não encontrado.", 401);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) throw new AppError("Credenciais inválidas.", 401);
@@ -111,8 +111,7 @@ export class UserManager {
     }
 
 
-    static async setEmailVerification(userId: string): Promise<string> {
-        const tk = crypto.randomBytes(32).toString("hex");
+      static async setEmailVerification(userId: string, tk: string): Promise<string> {
         const updated = await User.findByIdAndUpdate(
             userId,
             {
