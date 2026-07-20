@@ -9,6 +9,7 @@ export class UserManager {
         email: string;
         phone: string;
         password: string;
+        registration: { ip: string, userAgent: string }
     }): Promise<IUser> {
         try {
             const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -16,7 +17,11 @@ export class UserManager {
                 name: userData.name,
                 email: userData.email,
                 phone: userData.phone,
-                password: hashedPassword
+                password: hashedPassword,
+                registration: {
+                    ip: userData.registration.ip,
+                    userAgent: userData.registration.userAgent
+                }
             });
             await newUser.save();
             return newUser.toObject() as IUser;
