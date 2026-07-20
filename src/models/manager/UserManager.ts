@@ -97,6 +97,19 @@ export class UserManager {
         if (!updated) throw new AppError("Usuário não encontrado.", 404);
     }
 
+    static async setToken(email: string, token: string): Promise<void> {
+        const updated = await User.findOneAndUpdate(
+            { email },
+            {
+                $set: {
+                    authToken: token
+                }
+            }
+        );
+
+        if (!updated) throw new AppError("Usuário não encontrado.", 404);
+    }
+
 
     static async setEmailVerification(userId: string): Promise<string> {
         const tk = crypto.randomBytes(32).toString("hex");
